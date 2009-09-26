@@ -1,0 +1,135 @@
+/*** BeginHeader GPS_ET332 */
+
+#define DINBUFSIZE  255
+#define DOUTBUFSIZE 255
+#define DATO_GPS_OK  1
+#define ERR_DATO_GPS 0
+#define LARGO 15
+
+static char latitud[LARGO];
+static char longitud[LARGO];
+static char hora_utc[LARGO];
+static char fecha[LARGO];
+static int n_gps;
+
+/*** EndHeader */
+
+
+
+/*** BeginHeader Checksum */
+void Checksum(char *datos);
+/*** EndHeader */
+
+/* START FUNCTION DESCRIPTION ********************************************
+Checksum		                  <GPS_ET332.lib>
+
+SYNTAX: 			void Checksum(char *datos);
+
+DESCRIPTION:   Calcula el valor del checksum (en formato hexadecimal) de
+					los datos para verificar su validez. Para el calculo solo
+               se incluyen los datos entre $ y *, sin incluir estos ultimos.
+
+PARAMETER1:		Puntero al origen de los dato.
+
+END DESCRIPTION **********************************************************/
+
+void Checksum(char *datos){
+
+		auto char i;
+		auto char exor, exor_hexa[2];
+      exor = *(datos + 1);
+      for(i=2; i<20; i++)
+      {
+        exor = exor ^ *(datos + i);      //exor bit a bit de los datos.
+      }
+      sprintf(exor_hexa, "%2x", exor);   //se convierte en hexa.
+      *(datos + i+1) = exor_hexa[0];     //cifra mas significativa del checksum.
+      *(datos + i+2) = exor_hexa[1];
+
+}
+/****************************************************************************/
+
+
+
+/*** BeginHeader InicializarGPS */
+void InicializarGPS(void);
+/*** EndHeader */
+
+/* START FUNCTION DESCRIPTION ********************************************
+InicializarGPS		                  <GPS_ET332.lib>
+
+SYNTAX: 			void InicializarGPS(void);
+
+DESCRIPTION:   Inicializa el GPS para recibir datos solo en modo RMC.
+
+END DESCRIPTION **********************************************************/
+
+void InicializarGPS(void){
+
+      auto char MSG_GGA[26], MSG_GLL[26], MSG_GSA[26];
+      auto char MSG_RMC[26], MSG_GSV[26], MSG_VTG[26];
+
+      strcpy(MSG_GGA,"$PSRF103,00,00,00,00*00\r\n");
+      strcpy(MSG_GLL,"$PSRF103,01,00,00,00*00\r\n");
+      strcpy(MSG_GSA,"$PSRF103,02,00,00,00*00\r\n");
+      strcpy(MSG_GSV,"$PSRF103,03,00,00,00*00\r\n");
+      strcpy(MSG_VTG,"$PSRF103,05,00,00,00*00\r\n");
+      // Programo: msg=RMC, modo=SetRate, rate=3seg, checksum=0 desable.
+      strcpy(MSG_RMC,"$PSRF103,04,00,03,00*00\r\n");
+
+      //alcanza con hacer el checksum del primer comando si en este se
+      //indica deshabilitar el checksum.
+      Checksum(MSG_GGA);
+
+      serDopen(4800);
+      serDrdFlush();  // Limpia buffer de entrada del puerto serie D.
+      serDwrFlush();  // Limpia buffer de salida del puerto serie D.
+      serDwrite(MSG_GGA, strlen(MSG_GGA));
+      serDwrite(MSG_GLL, strlen(MSG_GLL));
+      serDwrite(MSG_GSA, strlen(MSG_GSA));
+      serDwrite(MSG_GSV, strlen(MSG_GSV));
+      serDwrite(MSG_VTG, strlen(MSG_VTG));
+      serDwrite(MSG_RMC, strlen(MSG_RMC));
+
+}
+/****************************************************************************/
+
+
+
+/*** BeginHeader ProcesarGPS */
+int ProcesarGPS(char *dato_gps, int len_dato_gps);
+/*** EndHeader */
+
+/* START FUNCTION DESCRIPTION ********************************************
+ProcesarGPS		                  <GPS_ET332.lib>
+
+SYNTAX: 			int ProcesarGPS(char *dato_gps, int len_dato_gps);
+
+DESCRIPTION:   Inicializa el GPS para recibir datos solo en modo RMC.
+
+END DESCRIPTION **********************************************************/
+
+int ProcesarGPS(char *dato_gps, int len_dato_gps){
+
+      auto char *valido;
+      auto char i;
+
+   	if((valido = strstr(dato_gps,"A")) != '\0')
+      {
+      		for (i=0;i<12;i++)
+            {
+      			latitud[i] = *(valido + 2 + i);
+            	longitud[i] = *(valido + 14 + i);
+            	hora_utc[i] = *(valido - 11 + i);
+               fecha[i] = *(dato_gps + (len_dato_gps - 10) + i);
+            }
+            latitud[11]='\0';
+         	longitud[12]='\0';
+         	hora_utc[10]='\0';
+            fecha[6]='\0';
+            return DATO_GPS_OK;
+      }
+      return ERR_DATO_GPS;
+
+}
+/****************************************************************************/
