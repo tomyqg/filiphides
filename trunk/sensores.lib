@@ -33,6 +33,17 @@
 
 ********************************************************************/
 
+/*** BeginHeader sensores */
+
+typedef struct    /* Estructura donde guardar el valor de la muestra y el tiempo en que fue adquirida */
+{
+	float muestra;
+   float tiempo;
+
+}  sensor;
+
+/*** EndHeader */
+
 
 /*** BeginHeader Termistor */
 float Termistor(void);
@@ -98,5 +109,5 @@ float Termistor(void)
 
 		Tc = Tk - 273.15;				//convert to celcius
 		return Tc;
-		
+
 }
