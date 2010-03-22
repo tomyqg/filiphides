@@ -200,10 +200,10 @@ void Inicio_Modem(int bps){
          Encendido_Modem();
          esperar(10000);    //espero 10 seg antes de usar el puerto serie
          serCread(respuesta, 12, TIEMPO);
-         while(Registrado() != RESP_OK);
+         //while(Registrado() != RESP_OK);
          //Configura el modem en modo texto
    		Config_modo_txt();
-         Config_modo_sleep();
+         //Config_modo_sleep();
 
 }
 /*************************************************************************/
