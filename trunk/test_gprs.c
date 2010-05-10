@@ -16,8 +16,8 @@ static const char CMD_CIPSTATUS[]="AT+CIPSTATUS\r";				    					/*Obtiene el est
 static const char CMD_CGPADDR[]  ="AT+CGPADDR=\r";                               /*Devuelve la direccion del contexto definido*/
 
 /* ***Comandos para conectar a un servidor y enviar datos*** */
-static const char CMD_CDNSORIP[]="AT+CDNSORIP=0\r";                         		/*Conexion sera por IP(0), o nombre de dominio(1)*/
-static const char CMD_CIPSTART[]="AT+CIPSTART=\"TCP\",64.233.169.103,80\r";  		/*Arranca la conexion TCP con el servidor*/
+static const char CMD_CDNSORIP[]="AT+CDNSORIP=1\r";                         		/*Conexion sera por IP(0), o nombre de dominio(1)*/
+static const char CMD_CIPSTART[]="AT+CIPSTART=\"TCP\",\"www.google.com.uy\",\"80\"\r";  /*Arranca la conexion TCP con el servidor*/
 static const char CMD_CIPSEND[] ="AT+CIPSEND\r";                            		/*Enviar los datos terminados en Ctrl-Z, luego de devolvernos el caracter >*/
 static const char PROMPT[]      =">";
 
@@ -30,9 +30,9 @@ void main(){
 
 	int i;
 	char datos[100];        																		/*El ultimo caracter debe ser Ctrl-Z*/
-   char google[1000];
+   char servidor[1000];
    datos[0]='\0';
-   google[0]='\0';
+   servidor[0]='\0';
    i=0;
 
    Inicio_Modem(BPS);
@@ -103,10 +103,9 @@ void main(){
    Respuesta_Modem(PROMPT, datos, TIEMPO);
    printf("\nRespuesta al comando CIPSEND:\n%s", datos);
 
-
-	Enviar_CMD("GET /HTTP/1.1");
-	Respuesta_Modem(PROMPT, google, TIEMPO);
-   printf("\nRespuesta desde google:\n%s", google);
+   Enviar_CMD("GET /HTTP/1.1");
+	Respuesta_Modem(ESPERO_OK, servidor, TIEMPO);
+   printf("\nRespuesta desde servidor:\n%s", servidor);
 
    Enviar_CMD("\032");
 
