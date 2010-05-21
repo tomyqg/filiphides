@@ -5,6 +5,7 @@
 /* ***Comando para listar operador seleccionado y banda de frecuencia *** */
 static const char CMD_COPS[]    ="AT+COPS?\r";
 static const char CMD_CBAND[]   ="AT+CBAND?\r";
+static const char CMD_CSMINS[]  ="AT+CSMINS?\r";
 
 /* ***Comandos para abrir un contexto PDP*** */
 static const char CMD_CGATT[]    ="AT+CGATT=1\r";	                					/*Adjunta el servicio GPRS*/
@@ -30,8 +31,10 @@ void main(){
 
 	int i;
 	char datos[100];        																		/*El ultimo caracter debe ser Ctrl-Z*/
+   char d_csmins[20];
    char servidor[1000];
    datos[0]='\0';
+   //d_csmins[0]='\0';
    servidor[0]='\0';
    i=0;
 
@@ -48,15 +51,21 @@ void main(){
       }
    }
 
-   //serCrdFlush();
-   //Enviar_CMD(CMD_CBAND);
-   //Respuesta_Modem(ESPERO_OK, datos, TIEMPO);
-   //printf("\nRespuesta al comando CBAND:\n%s", datos);
+   serCrdFlush();
+   Enviar_CMD(CMD_CSMINS);
+   esperar(100);
+   Respuesta_Modem(ESPERO_OK, d_csmins, TIEMPO);
+   printf("\nRespuesta al comando CSMINS:\n%s", d_csmins);
 
-   //serCrdFlush();
-   //Enviar_CMD(CMD_COPS);
-   //Respuesta_Modem(ESPERO_OK, datos, TIEMPO);
-   //printf("\nRespuesta al comando COPS:\n%s", datos);
+   serCrdFlush();
+   Enviar_CMD(CMD_CBAND);
+   Respuesta_Modem(ESPERO_OK, datos, TIEMPO);
+   printf("\nRespuesta al comando CBAND:\n%s", datos);
+
+   serCrdFlush();
+   Enviar_CMD(CMD_COPS);
+   Respuesta_Modem(ESPERO_OK, datos, TIEMPO);
+   printf("\nRespuesta al comando COPS:\n%s", datos);
 
    if(i==11)
    {
