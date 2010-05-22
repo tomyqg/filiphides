@@ -9,9 +9,10 @@
 #define ERR_PROMPT   	31
 #define ERR_MODO_SLEEP  41
 #define RESP_OK      	51
-#define PARAM_OK     	61
-#define ERR_PARAM    	71
-#define ERR_NUM_CEL  	81
+#define POS_OK     		61
+#define TERMO_OK			71
+#define ERR_PARAM    	81
+#define ERR_NUM_CEL  	91
 
 
 static const char CMD_MODO_TEXTO[]="AT+CMGF=1\r";
@@ -465,18 +466,18 @@ DESCRIPTION: 	Procesa el texto del SMS en busca del numero del remitente y de
 PARAMETER1:		Numero al que se le respondera el mensaje SMS.
 PARAMETER2:    Texto del mensaje a procesar.
 
-RETURN VALUE:	PARAM_OK - Mensaje con palabra clave correcta.
+RETURN VALUE:	POS_OK - Mensaje con palabra clave correcta.
 					ERR_PARAM - Mensaje con palabra clave incorrecta.
 
 END DESCRIPTION **********************************************************/
 
 int Procesar_SMS(char *numero, char *sms){
 
-   char *encontre;
+   //char *encontre;
    char *ptr_num;
    auto int i;
    i=0;
-   encontre = strstr(sms,"Posicion");
+   //encontre = strstr(sms,"Posicion");
    if((ptr_num = strstr(sms,"\"+598")) == '\0')
    	return ERR_NUM_CEL;
    for (i=0;i<14;i++)
@@ -485,9 +486,12 @@ int Procesar_SMS(char *numero, char *sms){
    }
    numero[14] = '\r';
    numero[15] = '\0';      //indica el final del numero del remitente
-   if(encontre != '\0')
-   	return PARAM_OK;
-   else return ERR_PARAM;
+   //if(encontre != '\0')
+     if(strstr(sms,"Posicion") != '\0'){
+     		return POS_OK;
+     }else if(strstr(sms,"Temperatura") != '\0'){
+               return TERMO_OK;
+     		  }else return ERR_PARAM;
 
 }
 /*************************************************************************/

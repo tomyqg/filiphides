@@ -20,8 +20,8 @@ void main()
       	ptr_termo->muestra = Termistor();
          printf("Temperature at %.2f C\n", ptr_termo->muestra);
 
-         if (ptr_termo > ptr_termo_fin)
+         if (ptr_termo > ptr_termo_fin){
          	ptr_termo = termo;
-         ptr_termo+=1;
+         } else ptr_termo+=1;
       }
 }
