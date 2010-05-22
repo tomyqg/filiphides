@@ -4,42 +4,47 @@
 
 #use Modem_SIMCOM.lib
 #use GPS_ET332.lib
+#use sensores.lib
 #use ucos2.lib
+#use "RCM43xx.LIB"
 
 #define BPS  19200
 #define tout    10
 #define ON       1
 #define OFF      0
 
-//Prototipos para las tasks
-	void task_GPS(void* pdata);
+/*Prototipos para las tasks*/
 	void task_SMS(void* pdata);
+	void task_GPS(void* pdata);
+   void task_SENSOR(void* pdata);
 
-//Semaforo señalado por task aware isr
+/*Semaforo señalado por task aware isr*/
 	OS_EVENT* serCsem;
 
-
-shared char msj[TAM];
+//shared char msj[TAM];
+shared char msj_termo[TAM];
+shared char msj_gps[TAM];
 shared int coord_ok;
 
 void main(){
 
-// Inicializa la estructura interna del OS.
+/* Inicializa la estructura interna del OS.*/
 	OSInit();
 
-// Crea dos tareas sin valores iniciales y 512 byte de stacks
-	OSTaskCreate(task_GPS, NULL, 512, 1);
+/* Crea dos tareas sin valores iniciales y 512 byte de stacks*/
 	OSTaskCreate(task_SMS, NULL, 512, 0);
+//	OSTaskCreate(task_GPS, NULL, 512, 1);
+	OSTaskCreate(task_SENSOR, NULL, 512, 2);
 
-// Crea el semaforo usado por taskSMS
+/* Crea el semaforo usado por taskSMS*/
 	serCsem = OSSemCreate(0);
 
-// Despliega mensaje inicial del RTOS
+/* Despliega mensaje inicial del RTOS*/
 	printf("*********************************\n");
 	printf("FILIPHIDES v1.0\n");
 	printf("*********************************\n");
 
-// Arranca el sistema operativo
+/* Arranca el sistema operativo*/
 	OSStart();
 }
 
@@ -53,13 +58,13 @@ void task_SMS(void* pdata)
 	static char num_msg[4];
 	static char txt_msj[TAM];
 	static char num_cel[16];
-// Inicializo el Modem
+	/*Inicializo el Modem*/
    Inicio_Modem(BPS);
-// limpia el buffer rx y tx del puerto serial C
+	/*Limpia el buffer rx y tx del puerto serial C*/
 	serCrdFlush();
 	serCwrFlush();
 
-   ModoSleep(ON); //pone el modem en bajo consumo
+   ModoSleep(ON); /*Pone el modem en bajo consumo*/
 
 	for(;;)
 	{
@@ -87,10 +92,10 @@ void task_SMS(void* pdata)
             Recibir_SMS(num_msg, txt_msj);
             switch(Procesar_SMS(num_cel, txt_msj))
             {
-            	case PARAM_OK:
+            	case POS_OK:
                              		if(coord_ok)
                				  		{
-                        				Enviar_SMS(num_cel, msj);   //enviar respuesta con coordenadas
+                        				Enviar_SMS(num_cel, msj_gps);   //enviar respuesta con coordenadas
                         				OSTimeDlySec(10);
                         				if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
                         					printf("Mensaje con coordenadas, enviado\n");
@@ -105,6 +110,13 @@ void task_SMS(void* pdata)
            		   						else printf("No hay coordenadas, no enviado\n");
                                  }
                               	break;
+               case TERMO_OK:
+                       				Enviar_SMS(num_cel, msj_termo);   //enviar respuesta con temperatura
+                        		 	OSTimeDlySec(10);
+                        			if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+                        				printf("Mensaje con temperatura, enviado\n");
+           		   					else printf("Mensaje con temperatura, no enviado\n");
+                                	break;
                case ERR_PARAM:
                               	Enviar_SMS(num_cel, MSJ_ERR_PARAM); //enviar mensaje indicando error de parametro
                	 					OSTimeDlySec(10);
@@ -121,8 +133,8 @@ void task_SMS(void* pdata)
             Borrar_SMS(num_msg); //Borra el mensaje previamente procesado
        }
        ModoSleep(ON); //pone el modem en bajo consumo nuevamente.
-   }//Fin del loop
-}//Fin task_SMS
+   }/*Fin del loop*/
+}/*Fin task_SMS*/
 
 
 
@@ -130,9 +142,9 @@ void task_GPS(void* pdata)
 {
 	static char data[TAM];
 
-// Inicializo el GPS
+	/*Inicializo el GPS*/
    InicializarGPS();
-// limpia el buffer rx y tx del puerto serial D
+	/*Limpia el buffer rx y tx del puerto serial D*/
 	serDrdFlush();
 	serDwrFlush();
    for(;;)
@@ -141,11 +153,36 @@ void task_GPS(void* pdata)
    	 n_gps = serDread(data, sizeof(data), tout);
    	 data[n_gps]='\0';
    	 coord_ok = ProcesarGPS(data, n_gps);
-   	 sprintf(msj, "Latitud: %s\nLongitud: %s\nHora: %s\nFecha: %s\n\032", latitud, longitud, hora_utc, fecha);
+   	 sprintf(msj_gps, "Latitud: %s\nLongitud: %s\nHora: %s\nFecha: %s\n\032", latitud, longitud, hora_utc, fecha);
    	 n_gps = 0;
 
-   }//Fin del loop
-}//Fin task_GPS
+   }/*Fin del loop*/
+}/*Fin task_GPS*/
+
+
+
+void task_SENSOR(void* pdata)
+{
+	static sensor termo[BUFF_TAM];
+   static sensor *ptr_termo, *ptr_termo_fin;
+   /*Inicializacion de punteros*/
+   ptr_termo = termo;
+   ptr_termo_fin = &termo[BUFF_TAM-1];
+   brdInit();
+
+   for(;;)
+	{
+   	 OSTimeDly(10 * OS_TICKS_PER_SEC);
+      	ptr_termo->muestra = Termistor();
+         sprintf(msj_termo, "Temperatura: %.2f C\n\032", ptr_termo->muestra);
+
+         if (ptr_termo > ptr_termo_fin){
+         	ptr_termo = termo;
+         } else ptr_termo+=1;
+
+   }/*Fin del loop*/
+}/*Fin task_SENSOR*/
+
 
 
 

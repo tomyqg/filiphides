@@ -35,6 +35,8 @@
 
 /*** BeginHeader sensores */
 
+#define BUFF_TAM 100
+
 typedef struct    /* Estructura donde guardar el valor de la muestra y el tiempo en que fue adquirida */
 {
 	float muestra;
