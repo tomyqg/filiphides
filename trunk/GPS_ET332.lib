@@ -5,6 +5,7 @@
 #define DATO_GPS_OK  1
 #define ERR_DATO_GPS 0
 #define LARGO 15
+#define BAUD 4800
 
 static char latitud[LARGO];
 static char longitud[LARGO];
@@ -68,28 +69,37 @@ void InicializarGPS(void){
 
       auto char MSG_GGA[26], MSG_GLL[26], MSG_GSA[26];
       auto char MSG_RMC[26], MSG_GSV[26], MSG_VTG[26];
+      auto char MSG_SSP[27];
 
-      strcpy(MSG_GGA,"$PSRF103,00,00,00,00*00\r\n");
-      strcpy(MSG_GLL,"$PSRF103,01,00,00,00*00\r\n");
-      strcpy(MSG_GSA,"$PSRF103,02,00,00,00*00\r\n");
-      strcpy(MSG_GSV,"$PSRF103,03,00,00,00*00\r\n");
-      strcpy(MSG_VTG,"$PSRF103,05,00,00,00*00\r\n");
-      // Programo: msg=RMC, modo=SetRate, rate=3seg, checksum=0 desable.
-      strcpy(MSG_RMC,"$PSRF103,04,00,03,00*00\r\n");
+      /*Protocolo de comunicacion NMEA 4800,8,N,1*/
+      strcpy(MSG_SSP,"$PSRF100,1,4800,8,1,0*00\r\n");
+      /*Configuracion de mensajes NMEA*/
+      strcpy(MSG_GGA,"$PSRF103,00,00,00,00*00\r\n");  /*Deshabilita GGA*/
+      strcpy(MSG_GLL,"$PSRF103,01,00,00,00*00\r\n");  /*Deshabilita GLL*/
+      strcpy(MSG_GSA,"$PSRF103,02,00,00,00*00\r\n");  /*Deshabilita GSA*/
+      strcpy(MSG_RMC,"$PSRF103,04,00,03,00*00\r\n");  /*Habilita <msg>=RMC,<mode>0=SetRate,<rate>=3seg,<cksumEnable>=0*/
+      strcpy(MSG_GSV,"$PSRF103,03,00,00,00*00\r\n");  /*Deshabilita GSV*/
+      strcpy(MSG_VTG,"$PSRF103,05,00,00,00*00\r\n");  /*Deshabilita VTG*/
 
-      //alcanza con hacer el checksum del primer comando si en este se
-      //indica deshabilitar el checksum.
+      Checksum(MSG_SSP);
       Checksum(MSG_GGA);
+      Checksum(MSG_GLL);
+      Checksum(MSG_GSA);
+      Checksum(MSG_RMC);
+      Checksum(MSG_GSV);
+      Checksum(MSG_VTG);
 
-      serDopen(4800);
-      serDrdFlush();  // Limpia buffer de entrada del puerto serie D.
-      serDwrFlush();  // Limpia buffer de salida del puerto serie D.
+      serDrdFlush();  /*Limpia buffer de entrada del puerto serie D.*/
+      serDwrFlush();  /*Limpia buffer de salida del puerto serie D.*/
+      serDopen(BAUD); /*Abre el serial D para comenzar a transmitir.*/
+
+      serDwrite(MSG_SSP, strlen(MSG_SSP));
       serDwrite(MSG_GGA, strlen(MSG_GGA));
       serDwrite(MSG_GLL, strlen(MSG_GLL));
       serDwrite(MSG_GSA, strlen(MSG_GSA));
+      serDwrite(MSG_RMC, strlen(MSG_RMC));
       serDwrite(MSG_GSV, strlen(MSG_GSV));
       serDwrite(MSG_VTG, strlen(MSG_VTG));
-      serDwrite(MSG_RMC, strlen(MSG_RMC));
 
 }
 /****************************************************************************/
