@@ -69,8 +69,8 @@ void main(){
 
    if(i==11)
    {
-   serCrdFlush(); 																					/*Limpia el buffer de entrada del puerto serial C*/
-
+   serCrdFlush();       /*Limpia el buffer de entrada del puerto serial C*/
+																			
    Enviar_CMD(CMD_CGATT);
    Respuesta_Modem(ESPERO_OK, datos, TIEMPO);
    printf("\nRespuesta al comando CGATT:\n%s", datos);

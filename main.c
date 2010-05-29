@@ -1,4 +1,4 @@
-#define OS_MAX_TASKS		2
+#define OS_MAX_TASKS		3
 #define OS_MAX_EVENTS	1
 #define OS_SEM_EN 	   1
 
@@ -33,7 +33,7 @@ void main(){
 
 /* Crea dos tareas sin valores iniciales y 512 byte de stacks*/
 	OSTaskCreate(task_SMS, NULL, 512, 0);
-//	OSTaskCreate(task_GPS, NULL, 512, 1);
+	OSTaskCreate(task_GPS, NULL, 512, 1);
 	OSTaskCreate(task_SENSOR, NULL, 512, 2);
 
 /* Crea el semaforo usado por taskSMS*/
@@ -53,16 +53,32 @@ void main(){
 void task_SMS(void* pdata)
 {
 	auto INT8U err;
+   int i;
+   auto char *num, *n;
    static char cns[100];
-	auto char *num, *n;
 	static char num_msg[4];
 	static char txt_msj[TAM];
 	static char num_cel[16];
 	/*Inicializo el Modem*/
    Inicio_Modem(BPS);
+   i=0;
+   while(i<10)
+   {
+   	if(Registrado() == RESP_OK)
+      	i=11;
+      else
+      {
+      	i++;
+   		OSTimeDly(5 * OS_TICKS_PER_SEC);
+      }
+   }
+   printf("Valor de i: %d", i); /*si es 11 se conecto a la red*/
+
 	/*Limpia el buffer rx y tx del puerto serial C*/
 	serCrdFlush();
 	serCwrFlush();
+	Config_modo_txt();   /*Configura el modem en modo texto*/
+   Config_modo_sleep(); /*Configura el modem para modo sleep*/
 
    ModoSleep(ON); /*Pone el modem en bajo consumo*/
 

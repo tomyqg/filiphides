@@ -14,7 +14,6 @@
 #define ERR_PARAM    	81
 #define ERR_NUM_CEL  	91
 
-
 static const char CMD_MODO_TEXTO[]="AT+CMGF=1\r";
 static const char CMD_MODO_SLEEP[]="AT+CSCLK=1\r";
 static const char BATERIA[]="AT+CBC\r";
@@ -192,20 +191,10 @@ END DESCRIPTION **********************************************************/
 
 void Inicio_Modem(int bps){
 
-			static const char READY[]="Call Ready\r\n";
-
-
         	Config_ParaleloE();
       	Config_ParaleloC();
          Config_serC(BPS);
          Encendido_Modem();
-         esperar(10000);    //espero 10 seg antes de usar el puerto serie
-         serCread(respuesta, 12, TIEMPO);
-         //while(Registrado() != RESP_OK);
-         //Configura el modem en modo texto
-   		Config_modo_txt();
-         //Config_modo_sleep();
-
 }
 /*************************************************************************/
 
