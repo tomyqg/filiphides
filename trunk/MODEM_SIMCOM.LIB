@@ -14,6 +14,9 @@
 #define ERR_PARAM    	81
 #define ERR_NUM_CEL  	91
 
+static const char CMD_CREG[]="AT+CREG?\r";
+static const char CREG[]="+CREG: 0,1";
+static const char PROMPT[]=">";
 static const char CMD_MODO_TEXTO[]="AT+CMGF=1\r";
 static const char CMD_MODO_SLEEP[]="AT+CSCLK=1\r";
 static const char BATERIA[]="AT+CBC\r";
@@ -355,9 +358,6 @@ END DESCRIPTION **********************************************************/
 
 int Registrado(){
 
-   static const char CMD_CREG[]="AT+CREG?\r";
-   static const char ESPERO_OK[]="OK\r\n";
-   static const char CREG[]="+CREG: 0,1";
    Enviar_CMD(CMD_CREG);
    if(Respuesta_Modem(CREG, respuesta, TIEMPO) == ERR_TIEMPO)
    	return ERR_TIEMPO;                    //ocurrio un error
@@ -390,9 +390,7 @@ END DESCRIPTION **********************************************************/
 
 int Enviar_SMS(char *numero, char *sms){
 
-	static const char PROMPT[]=">";
-	static char CMD_CMGS[25];
-
+	char CMD_CMGS[25];
    strcpy(CMD_CMGS,"AT+CMGS=");
    strcat(CMD_CMGS, numero);              //concateno ambos strings
    Enviar_CMD(CMD_CMGS);                  //comando AT+CMGS="+59898674910"\r
@@ -427,7 +425,7 @@ END DESCRIPTION **********************************************************/
 
 int Recibir_SMS(char *ind_msj, char *txt_msj){
 
-	static char CMD_CMGR[15];
+	char CMD_CMGR[15];
    strcpy(CMD_CMGR,"AT+CMGR=");
    strcat(CMD_CMGR, ind_msj);              //concateno ambos strings
    Enviar_CMD(CMD_CMGR);
@@ -508,7 +506,7 @@ END DESCRIPTION **********************************************************/
 
 int Borrar_SMS(char *ind_msj){
 
-	static char CMD_BORRAR[15];
+	char CMD_BORRAR[15];
    strcpy(CMD_BORRAR,"AT+CMGD=");
    strcat(CMD_BORRAR, ind_msj);              //concateno ambos strings
    Enviar_CMD(CMD_BORRAR);
