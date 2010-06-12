@@ -13,6 +13,9 @@
 #define ON       1
 #define OFF      0
 
+#define TIME_DATA_GPS   3
+#define TIME_DATA_TERMO 10
+
 /*Prototipos para las tasks*/
 	void task_SMS(void* pdata);
 	void task_GPS(void* pdata);
@@ -55,24 +58,29 @@ void task_SMS(void* pdata)
 	auto INT8U err;
    int i;
    auto char *num, *n;
-   static char cns[100];
-	static char num_msg[4];
-	static char txt_msj[TAM];
-	static char num_cel[16];
+   /*static*/ char cns[100];
+	/*static*/ char num_msg[4];
+	/*static*/ char txt_msj[TAM];
+	/*static*/ char num_cel[16];
+              char niv_bat[25];
+
 	/*Inicializo el Modem*/
    Inicio_Modem(BPS);
+   /* Me mantengo en el loop hasta registrarse en la red */
    i=0;
-   while(i<10)
-   {
-   	if(Registrado() == RESP_OK)
-      	i=11;
-      else
-      {
-      	i++;
-   		OSTimeDly(5 * OS_TICKS_PER_SEC);
-      }
+   while(Registrado() != RESP_OK){
+         if(i<10){
+             i++;
+         }else{
+         		Apagado_Modem();
+         		OSTimeDly(3 * OS_TICKS_PER_SEC);
+         		Encendido_Modem();
+            	i=0;
+               }
+         //printf("Valor de i: %d\n", i);
+         OSTimeDlySec(20);
    }
-   printf("Valor de i: %d", i); /*si es 11 se conecto a la red*/
+   printf("Salio del loop de registrado"); /*si es 11 se conecto a la red*/
 
 	/*Limpia el buffer rx y tx del puerto serial C*/
 	serCrdFlush();
@@ -102,9 +110,10 @@ void task_SMS(void* pdata)
 	        	num_msg[2]='\r';
 	        	num_msg[3]='\0';
 
-            ModoSleep(OFF);   //despierto el modem
-            OSTimeDly(3);     //espera 3 ticks de reloj del RTOS (1Tick = 10ms) para despertarse.
+            ModoSleep(OFF);   /*Despierto el modem*/
+            OSTimeDly(3);     /*Espera 3 ticks de reloj del RTOS (1Tick = 10ms) para despertarse.*/
 
+            txt_msj[0]='\0';  /*Borra el texto del mensaje anterior*/
             Recibir_SMS(num_msg, txt_msj);
             switch(Procesar_SMS(num_cel, txt_msj))
             {
@@ -133,6 +142,14 @@ void task_SMS(void* pdata)
                         				printf("Mensaje con temperatura, enviado\n");
            		   					else printf("Mensaje con temperatura, no enviado\n");
                                 	break;
+               case BAT_OK:
+                                 Nivel_Bateria(niv_bat);
+                       				Enviar_SMS(num_cel, niv_bat);   //enviar respuesta con nivel de bateria
+                        		 	OSTimeDlySec(10);
+                        			if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+                        				printf("Mensaje con nivel de bateria, enviado\n");
+           		   					else printf("Mensaje con nivel de bateria, no enviado\n");
+                                	break;
                case ERR_PARAM:
                               	Enviar_SMS(num_cel, MSJ_ERR_PARAM); //enviar mensaje indicando error de parametro
                	 					OSTimeDlySec(10);
@@ -159,13 +176,14 @@ void task_GPS(void* pdata)
 	static char data[TAM];
 
 	/*Inicializo el GPS*/
+   //OSTimeDlySec(40); /*Se debe esperar 40seg luego de energizado*/
    InicializarGPS();
 	/*Limpia el buffer rx y tx del puerto serial D*/
 	serDrdFlush();
 	serDwrFlush();
    for(;;)
 	{
-   	 OSTimeDly(3 * OS_TICKS_PER_SEC);
+   	 OSTimeDly(TIME_DATA_GPS * OS_TICKS_PER_SEC);
    	 n_gps = serDread(data, sizeof(data), tout);
    	 data[n_gps]='\0';
    	 coord_ok = ProcesarGPS(data, n_gps);
@@ -188,7 +206,7 @@ void task_SENSOR(void* pdata)
 
    for(;;)
 	{
-   	 OSTimeDly(10 * OS_TICKS_PER_SEC);
+   	 OSTimeDly(TIME_DATA_TERMO * OS_TICKS_PER_SEC);
       	ptr_termo->muestra = Termistor();
          sprintf(msj_termo, "Temperatura: %.2f C\n\032", ptr_termo->muestra);
 
