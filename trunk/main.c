@@ -62,7 +62,6 @@ void task_SMS(void* pdata)
 	/*static*/ char num_msg[4];
 	/*static*/ char txt_msj[TAM];
 	/*static*/ char num_cel[16];
-              char niv_bat[25];
 
 	/*Inicializo el Modem*/
    Inicio_Modem(BPS);
@@ -80,15 +79,14 @@ void task_SMS(void* pdata)
          //printf("Valor de i: %d\n", i);
          OSTimeDlySec(20);
    }
-   printf("Salio del loop de registrado"); /*si es 11 se conecto a la red*/
 
 	/*Limpia el buffer rx y tx del puerto serial C*/
 	serCrdFlush();
 	serCwrFlush();
-	Config_modo_txt();   /*Configura el modem en modo texto*/
-   Config_modo_sleep(); /*Configura el modem para modo sleep*/
+	Config_modo_txt();   						/*Configura el modem en modo texto*/
+   Config_modo_sleep();							/*Configura el modem para modo sleep*/
 
-   ModoSleep(ON); /*Pone el modem en bajo consumo*/
+   ModoSleep(ON); 								/*Pone el modem en bajo consumo*/
 
 	for(;;)
 	{
@@ -105,7 +103,7 @@ void task_SMS(void* pdata)
        while((num = strstr(num, "+CMTI:")) != '\0')    //proceso todos los sms leidos en una instancia
        {
        		num += 12;
-            num_msg[0]=num[0];     //Selecciona el nº de sms recibido
+            num_msg[0]=num[0];     /*Selecciona el nº de sms recibido*/
 	        	num_msg[1]=num[1];
 	        	num_msg[2]='\r';
 	        	num_msg[3]='\0';
@@ -113,57 +111,58 @@ void task_SMS(void* pdata)
             ModoSleep(OFF);   /*Despierto el modem*/
             OSTimeDly(3);     /*Espera 3 ticks de reloj del RTOS (1Tick = 10ms) para despertarse.*/
 
-            txt_msj[0]='\0';  /*Borra el texto del mensaje anterior*/
-            Recibir_SMS(num_msg, txt_msj);
-            switch(Procesar_SMS(num_cel, txt_msj))
+            i=0;
+            while(Recibir_SMS(num_msg, txt_msj)!= RESP_OK && i<5)   /*Si recibe el mensaje en el primer intento salgo y proceso*/
             {
-            	case POS_OK:
-                             		if(coord_ok)
-               				  		{
-                        				Enviar_SMS(num_cel, msj_gps);   //enviar respuesta con coordenadas
-                        				OSTimeDlySec(10);
-                        				if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
-                        					printf("Mensaje con coordenadas, enviado\n");
-           		   						else printf("Mensaje con coordenadas, no enviado\n");
-                   					}
-                                 else
-                                 {
-                                    Enviar_SMS(num_cel, MSJ_NO_COORD);   //enviar respuesta con coordenadas
-                        				OSTimeDlySec(10);
-                        				if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
-                        					printf("No hay coordenadas, enviado\n");
-           		   						else printf("No hay coordenadas, no enviado\n");
-                                 }
-                              	break;
-               case TERMO_OK:
-                       				Enviar_SMS(num_cel, msj_termo);   //enviar respuesta con temperatura
-                        		 	OSTimeDlySec(10);
-                        			if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
-                        				printf("Mensaje con temperatura, enviado\n");
-           		   					else printf("Mensaje con temperatura, no enviado\n");
-                                	break;
-               case BAT_OK:
-                                 Nivel_Bateria(niv_bat);
-                       				Enviar_SMS(num_cel, niv_bat);   //enviar respuesta con nivel de bateria
-                        		 	OSTimeDlySec(10);
-                        			if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
-                        				printf("Mensaje con nivel de bateria, enviado\n");
-           		   					else printf("Mensaje con nivel de bateria, no enviado\n");
-                                	break;
-               case ERR_PARAM:
-                              	Enviar_SMS(num_cel, MSJ_ERR_PARAM); //enviar mensaje indicando error de parametro
-               	 					OSTimeDlySec(10);
-                   					if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
-               	    					printf("Mensaje parametro incorrecto, enviado\n");
-               	 					else printf("Mensaje parametro incorrecto, no enviado\n");
-                              	break;
-               case ERR_NUM_CEL:
-                                 printf("Error al obtener el numero de celular\n\n");
-                                 break;
-               default:
-                                 printf("Error grave al procesar el mensaje\n\n");
+            	i++;
             }
-            Borrar_SMS(num_msg); //Borra el mensaje previamente procesado
+            if(i!=5)
+            {
+            	printf("Valor de numero de mensaje: %s\n", num_msg);
+            	switch(Procesar_SMS(num_cel, txt_msj))
+            	{
+            		case POS_OK:
+                  	           		if(coord_ok)
+               					  		{
+                        					Enviar_SMS(num_cel, msj_gps);   //enviar respuesta con coordenadas
+                        					OSTimeDlySec(10);
+                        					if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+                        						printf("Mensaje con coordenadas, enviado\n");
+           		   							else printf("Mensaje con coordenadas, no enviado\n");
+                 		  					}
+                    	               else
+                       		         {
+                           	         Enviar_SMS(num_cel, MSJ_NO_COORD);   //enviar respuesta con coordenadas
+                        					OSTimeDlySec(10);
+                        					if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+                        						printf("No hay coordenadas, enviado\n");
+           		   					  		else printf("No hay coordenadas, no enviado\n");
+                                 	}
+                              		break;
+               	case TERMO_OK:
+                  	     				Enviar_SMS(num_cel, msj_termo);   //enviar respuesta con temperatura
+                     	   		 	OSTimeDlySec(10);
+                         				if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+                        					printf("Mensaje con temperatura, enviado\n");
+           		   						else printf("Mensaje con temperatura, no enviado\n");
+                                		break;
+               	case ERR_PARAM:
+                 		             	Enviar_SMS(num_cel, MSJ_ERR_PARAM); //enviar mensaje indicando error de parametro
+               	 						OSTimeDlySec(10);
+                   						if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+               	    						printf("Mensaje parametro incorrecto, enviado\n");
+               	 						else printf("Mensaje parametro incorrecto, no enviado\n");
+                              		break;
+               	case ERR_NUM_CEL:
+                  	               printf("Error al obtener el numero de celular\n\n");
+                     	            break;
+               	default:
+                  	               printf("Error grave al procesar el mensaje\n\n");
+            	}
+            }
+            printf("Valor de numero de celular: %s\n", num_cel);
+            Borrar_SMS(num_msg);   /*Borra el mensaje previamente procesado*/
+            serCrdFlush();
        }
        ModoSleep(ON); //pone el modem en bajo consumo nuevamente.
    }/*Fin del loop*/
