@@ -6,6 +6,7 @@
 static const char CMD_COPS[]    ="AT+COPS?\r";
 static const char CMD_CBAND[]   ="AT+CBAND?\r";
 static const char CMD_CSMINS[]  ="AT+CSMINS?\r";
+static const char CMD_CMGD[]    ="AT+CMGD=\"ALL\"\r";
 
 /* ***Comandos para abrir un contexto PDP*** */
 static const char CMD_CGATT[]    ="AT+CGATT=1\r";	                					/*Adjunta el servicio GPRS*/
@@ -20,7 +21,6 @@ static const char CMD_CGPADDR[]  ="AT+CGPADDR=\r";                              
 static const char CMD_CDNSORIP[]="AT+CDNSORIP=1\r";                         		/*Conexion sera por IP(0), o nombre de dominio(1)*/
 static const char CMD_CIPSTART[]="AT+CIPSTART=\"TCP\",\"www.google.com.uy\",\"80\"\r";  /*Arranca la conexion TCP con el servidor*/
 static const char CMD_CIPSEND[] ="AT+CIPSEND\r";                            		/*Enviar los datos terminados en Ctrl-Z, luego de devolvernos el caracter >*/
-static const char PROMPT[]      =">";
 
 static const char CMD_CIPCLOSE[]="AT+CIPCLOSE\r";  										/*Cierra la conexion TCP o UDP*/
 static const char CMD_CIPSHUT[] ="AT+CIPSHUT\r";                            		/*Cierra la conexion*/
@@ -52,6 +52,11 @@ void main(){
    }
 
    serCrdFlush();
+   Enviar_CMD(BATERIA);
+   Respuesta_Modem(ESPERO_OK, datos, TIEMPO);
+   printf("\nRespuesta al comando BATERIA:\n%s", datos);
+
+   serCrdFlush();
    Enviar_CMD(CMD_CSMINS);
    esperar(100);
    Respuesta_Modem(ESPERO_OK, d_csmins, TIEMPO);
@@ -67,10 +72,15 @@ void main(){
    Respuesta_Modem(ESPERO_OK, datos, TIEMPO);
    printf("\nRespuesta al comando COPS:\n%s", datos);
 
+   serCrdFlush();
+   Enviar_CMD(CMD_CMGD);
+   Respuesta_Modem(ESPERO_OK, datos, TIEMPO);
+   printf("\nRespuesta al comando CMGD:\n%s", datos);
+
    if(i==11)
    {
    serCrdFlush();       /*Limpia el buffer de entrada del puerto serial C*/
-																			
+
    Enviar_CMD(CMD_CGATT);
    Respuesta_Modem(ESPERO_OK, datos, TIEMPO);
    printf("\nRespuesta al comando CGATT:\n%s", datos);
@@ -116,7 +126,7 @@ void main(){
 	Respuesta_Modem(ESPERO_OK, servidor, TIEMPO);
    printf("\nRespuesta desde servidor:\n%s", servidor);
 
-   Enviar_CMD("\032");
+   Enviar_CMD("\032");        
 
 //   Enviar_CMD(CMD_CIPSHUT);
 //   Respuesta_Modem(ESPERO_OK, datos, TIEMPO);

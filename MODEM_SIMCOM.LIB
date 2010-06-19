@@ -478,9 +478,7 @@ int Procesar_SMS(char *numero, char *sms){
      		return POS_OK;
      }else if(strstr(sms,"Temperatura") != '\0'){
                return TERMO_OK;
-     		  }else if(strstr(sms,"Bateria") != '\0')
-           				return BAT_OK;
-                 else  return ERR_PARAM;
+     		  }else return ERR_PARAM;
 
 }
 /*************************************************************************/
