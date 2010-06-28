@@ -2,7 +2,7 @@
 
 #define CINBUFSIZE     255
 #define COUTBUFSIZE 	  255
-#define TIEMPO       	10
+#define TIEMPO       	30
 #define TAM         	  200
 
 #define ERR_TIEMPO   	11
@@ -149,13 +149,13 @@ void Apagado_Modem(){
 
 
 /*** BeginHeader Config_serC */
-void Config_serC(int bps);
+void Config_serC(long bps);
 /*** EndHeader */
 
 /* START FUNCTION DESCRIPTION ********************************************
 Config_serC                               <Modem_SIMCOM.LIB>
 
-SYNTAX:			void Config_serC(int bps);
+SYNTAX:			void Config_serC(long bps);
 
 DESCRIPTION: 	Configura el puerto serie C para comunicacion con el modem
 
@@ -163,7 +163,7 @@ PARAMETER1:		El baud rate para comunicarse con el modem (300 a 115200 bps)
 
 END DESCRIPTION **********************************************************/
 
-void Config_serC(int bps){
+void Config_serC(long bps){
 
 
    serCopen(bps);
@@ -179,13 +179,13 @@ void Config_serC(int bps){
 
 
 /*** BeginHeader Inicio_Modem */
-void Inicio_Modem(int bps);
+void Inicio_Modem(long bps);
 /*** EndHeader */
 
 /* START FUNCTION DESCRIPTION ********************************************
 Inicio_Modem                              <Modem_SIMCOM.LIB>
 
-SYNTAX:			void Inicio_Modem(int bps);
+SYNTAX:			void Inicio_Modem(long bps);
 
 DESCRIPTION: 	Inicializa puertos, enciende modem y espera que se registre en
 					la red celular.
@@ -195,7 +195,7 @@ PARAMETER1:		El baud rate para comunicarse con el modem (300 a 115200 bps)
 
 END DESCRIPTION **********************************************************/
 
-void Inicio_Modem(int bps){
+void Inicio_Modem(long bps){
 
         	Config_ParaleloE();
       	Config_ParaleloC();
