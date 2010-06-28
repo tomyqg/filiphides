@@ -160,7 +160,7 @@ void task_SMS(void* pdata)
                   	               printf("Error grave al procesar el mensaje\n\n");
             	}
             }
-            printf("Valor de numero de celular: %s\n", num_cel);
+            printf("Texto del mensaje: %s\n", txt_msj);
             Borrar_SMS(num_msg);   /*Borra el mensaje previamente procesado*/
             serCrdFlush();
        }
