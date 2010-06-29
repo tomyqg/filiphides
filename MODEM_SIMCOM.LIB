@@ -4,6 +4,7 @@
 #define COUTBUFSIZE 	  255
 #define TIEMPO       	30
 #define TAM         	  200
+#define MAX_SMS  			31/*Nº max +1 de sms almacenables en memoria del modem*/
 
 #define ERR_TIEMPO   	11
 #define ERR_MODO_TXT 	12
@@ -12,10 +13,10 @@
 #define ERR_PARAM    	15
 #define ERR_NUM_CEL  	16
 
-#define RESP_OK      	31
-#define POS_OK     		32
-#define TERMO_OK			33
-#define BAT_OK          34
+#define RESP_OK      	21
+#define POS_OK     		22
+#define TERMO_OK			23
+#define BAT_OK          24
 
 static const char CMD_CREG[]="AT+CREG?\r";
 static const char CREG[]="+CREG: 0,1";
@@ -519,6 +520,35 @@ int Borrar_SMS(char *ind_msj){
 
 
 
+/*** BeginHeader Borrar_ALL */
+void Borrar_ALL();
+/*** EndHeader */
+
+/* START FUNCTION DESCRIPTION ********************************************
+Borrar_ALL                                 <Modem_SIMCOM.LIB>
+
+SYNTAX:			void Borrar_ALL();
+
+DESCRIPTION: 	Elimina todos los mensaje SMS que se encuentran en memoria
+					del modem.
+
+END DESCRIPTION **********************************************************/
+void Borrar_ALL()
+{
+	int i;
+	char ind_msj[4];
+
+  	for(i=1; i<MAX_SMS; i++)
+   {
+     	sprintf(ind_msj, "%d", i);   /*Conversion de entero a string*/
+     	strcat(ind_msj, "\r\0");
+     	Borrar_SMS(ind_msj);         /*Borra el mensaje en la posicion ind_msj*/
+   }
+}
+/*************************************************************************/
+
+
+
 /*** BeginHeader Config_modo_txt */
 int Config_modo_txt(void);
 /*** EndHeader */
@@ -605,3 +635,41 @@ int Nivel_Bateria(char *nbateria){
 /*************************************************************************/
 
 
+
+/*** BeginHeader Listar_SMSs */
+void Listar_SMSs();
+/*** EndHeader */
+
+/* START FUNCTION DESCRIPTION ********************************************
+Listar_SMSs                                 <Modem_SIMCOM.LIB>
+
+SYNTAX:			void Listar_SMSs();
+
+DESCRIPTION: 	Imprime en pantalla el texto de los mensaje SMS, incluyendo
+					el encabezado, que se encuentran almacenados en la memoria
+               del modem.
+
+END DESCRIPTION **********************************************************/
+
+void Listar_SMSs()
+{
+	int i;
+   char txt_msj[TAM];
+   char CMD_CMGR[15];
+   char num_msj[4];
+
+   /*Imprime los mensajes en memoria del modem*/
+   for(i=1; i<MAX_SMS; i++)
+   {
+   	CMD_CMGR[0]='\0';             /*Inicializa el comando*/
+      txt_msj[0] ='\0';             /*Inicializa el texto del mensaje a ser leido*/
+      sprintf(num_msj, "%d", i);    /*Conversion de entero a string*/
+      strcat(num_msj, "\r\0");
+      strcpy(CMD_CMGR,"AT+CMGR=");
+      strcat(CMD_CMGR, num_msj);
+   	Enviar_CMD(CMD_CMGR);
+   	Respuesta_Modem(ESPERO_OK, txt_msj, TIEMPO);
+   	printf("Texto del mensaje:\n%s\n", txt_msj);
+   }
+}
+/*************************************************************************/
