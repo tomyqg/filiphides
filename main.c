@@ -8,7 +8,7 @@
 #use ucos2.lib
 #use "RCM43xx.LIB"
 
-#define BPS  19200
+#define BPS  38400
 #define tout    10
 #define ON       1
 #define OFF      0
@@ -57,11 +57,11 @@ void task_SMS(void* pdata)
 {
 	auto INT8U err;
    int i;
-   auto char *num, *n;
-   /*static*/ char cns[100];
-	/*static*/ char num_msg[4];
-	/*static*/ char txt_msj[TAM];
-	/*static*/ char num_cel[16];
+   auto char *num;
+   char cns[100];
+	char num_msg[4];
+	char txt_msj[TAM];
+	char num_cel[16];
 
 	/*Inicializo el Modem*/
    Inicio_Modem(BPS);
@@ -76,7 +76,6 @@ void task_SMS(void* pdata)
          		Encendido_Modem();
             	i=0;
                }
-         //printf("Valor de i: %d\n", i);
          OSTimeDlySec(20);
    }
 
@@ -94,13 +93,13 @@ void task_SMS(void* pdata)
 		 // will be signaled by the task aware isr for serial port C
 		 // at the end of this file.
 		 OSSemPend(serCsem, 0, &err);
-       OSTimeDly(10);  //espera 10 ticks de reloj del RTOS (1Tick = 10ms).
+       OSTimeDly(10);  /*Espera 10 ticks de reloj del RTOS (1Tick = 10ms)*/
        n_gsm = serCread(cns, sizeof(cns), tout);
-       cns[n_gsm]='\0';     //para no volver a procesar otra vez lo que quedo de la ocación anterior
+       cns[n_gsm]='\0';     /*Para no volver a procesar otra vez lo que quedo de la ocación anterior*/
        printf("%s", cns);
        n_gsm = 0;
        num = cns;
-       while((num = strstr(num, "+CMTI:")) != '\0')    //proceso todos los sms leidos en una instancia
+       if((num = strstr(num, "+CMTI:")) != '\0')    /*Proceso el sms leido en una instancia*/
        {
        		num += 12;
             num_msg[0]=num[0];     /*Selecciona el nº de sms recibido*/
@@ -118,7 +117,6 @@ void task_SMS(void* pdata)
             }
             if(i!=5)
             {
-            	printf("Valor de numero de mensaje: %s\n", num_msg);
             	switch(Procesar_SMS(num_cel, txt_msj))
             	{
             		case POS_OK:
@@ -160,11 +158,16 @@ void task_SMS(void* pdata)
                   	               printf("Error grave al procesar el mensaje\n\n");
             	}
             }
-            printf("Texto del mensaje: %s\n", txt_msj);
+            /*printf("Texto del mensaje: %s\n", txt_msj);*/
             Borrar_SMS(num_msg);   /*Borra el mensaje previamente procesado*/
             serCrdFlush();
        }
-       ModoSleep(ON); //pone el modem en bajo consumo nuevamente.
+       if((num = strstr(num_msg, "30")) != '\0')
+       {
+       	Borrar_ALL();
+         num_msg[0]='\0';
+       }
+       ModoSleep(ON); 					/*Pone el modem en bajo consumo nuevamente*/
    }/*Fin del loop*/
 }/*Fin task_SMS*/
 
@@ -175,7 +178,6 @@ void task_GPS(void* pdata)
 	static char data[TAM];
 
 	/*Inicializo el GPS*/
-   //OSTimeDlySec(40); /*Se debe esperar 40seg luego de energizado*/
    InicializarGPS();
 	/*Limpia el buffer rx y tx del puerto serial D*/
 	serDrdFlush();
@@ -207,7 +209,7 @@ void task_SENSOR(void* pdata)
 	{
    	 OSTimeDly(TIME_DATA_TERMO * OS_TICKS_PER_SEC);
       	ptr_termo->muestra = Termistor();
-         sprintf(msj_termo, "Temperatura: %.2f C\n\032", ptr_termo->muestra);
+         sprintf(msj_termo, "Temperatura: %.2f ºC\n\032", ptr_termo->muestra);
 
          if (ptr_termo > ptr_termo_fin){
          	ptr_termo = termo;
