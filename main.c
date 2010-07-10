@@ -8,8 +8,7 @@
 #use ucos2.lib
 #use "RCM43xx.LIB"
 
-#define BPS  38400
-#define tout    10
+#define BPS 115200
 #define ON       1
 #define OFF      0
 
@@ -94,7 +93,7 @@ void task_SMS(void* pdata)
 		 // at the end of this file.
 		 OSSemPend(serCsem, 0, &err);
        OSTimeDly(10);  /*Espera 10 ticks de reloj del RTOS (1Tick = 10ms)*/
-       n_gsm = serCread(cns, sizeof(cns), tout);
+       n_gsm = serCread(cns, sizeof(cns), TIMEOUT);
        cns[n_gsm]='\0';     /*Para no volver a procesar otra vez lo que quedo de la ocación anterior*/
        printf("%s", cns);
        n_gsm = 0;
@@ -124,7 +123,7 @@ void task_SMS(void* pdata)
                					  		{
                         					Enviar_SMS(num_cel, msj_gps);   //enviar respuesta con coordenadas
                         					OSTimeDlySec(10);
-                        					if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+                        					if(Respuesta_Modem(ESPERO_OK, respuesta, TIMEOUT) == RESP_OK)
                         						printf("Mensaje con coordenadas, enviado\n");
            		   							else printf("Mensaje con coordenadas, no enviado\n");
                  		  					}
@@ -132,7 +131,7 @@ void task_SMS(void* pdata)
                        		         {
                            	         Enviar_SMS(num_cel, MSJ_NO_COORD);   //enviar respuesta con coordenadas
                         					OSTimeDlySec(10);
-                        					if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+                        					if(Respuesta_Modem(ESPERO_OK, respuesta, TIMEOUT) == RESP_OK)
                         						printf("No hay coordenadas, enviado\n");
            		   					  		else printf("No hay coordenadas, no enviado\n");
                                  	}
@@ -140,14 +139,14 @@ void task_SMS(void* pdata)
                	case TERMO_OK:
                   	     				Enviar_SMS(num_cel, msj_termo);   //enviar respuesta con temperatura
                      	   		 	OSTimeDlySec(10);
-                         				if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+                         				if(Respuesta_Modem(ESPERO_OK, respuesta, TIMEOUT) == RESP_OK)
                         					printf("Mensaje con temperatura, enviado\n");
            		   						else printf("Mensaje con temperatura, no enviado\n");
                                 		break;
                	case ERR_PARAM:
                  		             	Enviar_SMS(num_cel, MSJ_ERR_PARAM); //enviar mensaje indicando error de parametro
                	 						OSTimeDlySec(10);
-                   						if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == RESP_OK)
+                   						if(Respuesta_Modem(ESPERO_OK, respuesta, TIMEOUT) == RESP_OK)
                	    						printf("Mensaje parametro incorrecto, enviado\n");
                	 						else printf("Mensaje parametro incorrecto, no enviado\n");
                               		break;
@@ -185,7 +184,7 @@ void task_GPS(void* pdata)
    for(;;)
 	{
    	 OSTimeDly(TIME_DATA_GPS * OS_TICKS_PER_SEC);
-   	 n_gps = serDread(data, sizeof(data), tout);
+   	 n_gps = serDread(data, sizeof(data), TIMEOUT);
    	 data[n_gps]='\0';
    	 coord_ok = ProcesarGPS(data, n_gps);
    	 sprintf(msj_gps, "Latitud: %s\nLongitud: %s\nHora: %s\nFecha: %s\n\032", latitud, longitud, hora_utc, fecha);
