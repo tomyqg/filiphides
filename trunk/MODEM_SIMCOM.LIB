@@ -2,7 +2,7 @@
 
 #define CINBUFSIZE     255
 #define COUTBUFSIZE 	  255
-#define TIEMPO       	30
+#define TIMEOUT       	30
 #define TAM         	  200
 #define MAX_SMS  			31/*Nº max +1 de sms almacenables en memoria del modem*/
 
@@ -253,7 +253,7 @@ END DESCRIPTION **********************************************************/
 void Enviar_CMD(char *mensaje){
 
 	serCputs(mensaje);
-   esperar(10*TIEMPO);   //luego de enviar un comando espero 100ms.
+   esperar(10*TIMEOUT);   //luego de enviar un comando espero 100ms.
 }
 /*************************************************************************/
 
@@ -363,7 +363,7 @@ END DESCRIPTION **********************************************************/
 int Registrado(){
 
    Enviar_CMD(CMD_CREG);
-   if(Respuesta_Modem(CREG, respuesta, TIEMPO) == ERR_TIEMPO)
+   if(Respuesta_Modem(CREG, respuesta, TIMEOUT) == ERR_TIEMPO)
    	return ERR_TIEMPO;                    //ocurrio un error
    else return RESP_OK;
 
@@ -398,7 +398,7 @@ int Enviar_SMS(char *numero, char *sms){
    strcpy(CMD_CMGS,"AT+CMGS=");
    strcat(CMD_CMGS, numero);              //concateno ambos strings
    Enviar_CMD(CMD_CMGS);                  //comando AT+CMGS="+59898674910"\r
-   if(Respuesta_Modem(PROMPT, respuesta, TIEMPO) == ERR_TIEMPO)
+   if(Respuesta_Modem(PROMPT, respuesta, TIMEOUT) == ERR_TIEMPO)
    	return ERR_PROMPT;                  //ocurrio un error */
 
    Enviar_CMD(sms);           				//texto de respuesta
@@ -433,7 +433,7 @@ int Recibir_SMS(char *ind_msj, char *txt_msj){
    strcpy(CMD_CMGR,"AT+CMGR=");
    strcat(CMD_CMGR, ind_msj);              //concateno ambos strings
    Enviar_CMD(CMD_CMGR);
-   if(Respuesta_Modem(ESPERO_OK, txt_msj, TIEMPO) == ERR_TIEMPO)
+   if(Respuesta_Modem(ESPERO_OK, txt_msj, TIMEOUT) == ERR_TIEMPO)
    	return ERR_TIEMPO;                   //ocurrio un error
    else return RESP_OK;
 
@@ -511,7 +511,7 @@ int Borrar_SMS(char *ind_msj){
    strcpy(CMD_BORRAR,"AT+CMGD=");
    strcat(CMD_BORRAR, ind_msj);              //concateno ambos strings
    Enviar_CMD(CMD_BORRAR);
-   if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == ERR_TIEMPO)
+   if(Respuesta_Modem(ESPERO_OK, respuesta, TIMEOUT) == ERR_TIEMPO)
      	return ERR_TIEMPO;                  //ocurrio un error
    else return RESP_OK;
 
@@ -568,7 +568,7 @@ END DESCRIPTION **********************************************************/
 int Config_modo_txt(){
 
    Enviar_CMD(CMD_MODO_TEXTO);    //configuracion para modo texto.
-   if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == ERR_TIEMPO)
+   if(Respuesta_Modem(ESPERO_OK, respuesta, TIMEOUT) == ERR_TIEMPO)
      	return ERR_MODO_TXT;                //ocurrio un error
    else return RESP_OK;
 
@@ -596,7 +596,7 @@ END DESCRIPTION **********************************************************/
 int Config_modo_sleep(){
 
    Enviar_CMD(CMD_MODO_SLEEP);    //habilita el modo sleep.
-   if(Respuesta_Modem(ESPERO_OK, respuesta, TIEMPO) == ERR_TIEMPO)
+   if(Respuesta_Modem(ESPERO_OK, respuesta, TIMEOUT) == ERR_TIEMPO)
      	return ERR_MODO_SLEEP;                //ocurrio un error
    else return RESP_OK;
 
@@ -627,7 +627,7 @@ END DESCRIPTION **********************************************************/
 int Nivel_Bateria(char *nbateria){
 
    Enviar_CMD(BATERIA);
-   if(Respuesta_Modem(ESPERO_OK, nbateria, TIEMPO) == ERR_TIEMPO)
+   if(Respuesta_Modem(ESPERO_OK, nbateria, TIMEOUT) == ERR_TIEMPO)
      	return ERR_TIEMPO;                    //ocurrio un error
    else return RESP_OK;
 
@@ -668,7 +668,7 @@ void Listar_SMSs()
       strcpy(CMD_CMGR,"AT+CMGR=");
       strcat(CMD_CMGR, num_msj);
    	Enviar_CMD(CMD_CMGR);
-   	Respuesta_Modem(ESPERO_OK, txt_msj, TIEMPO);
+   	Respuesta_Modem(ESPERO_OK, txt_msj, TIMEOUT);
    	printf("Texto del mensaje:\n%s\n", txt_msj);
    }
 }
