@@ -2,18 +2,13 @@
 #define OS_MAX_EVENTS	1
 #define OS_SEM_EN 	   1
 
+#use variables.lib
 #use Modem_SIMCOM.lib
 #use GPS_ET332.lib
 #use sensores.lib
 #use ucos2.lib
 #use "RCM43xx.LIB"
 
-#define BPS 115200
-#define ON       1
-#define OFF      0
-
-#define TIME_DATA_GPS   3
-#define TIME_DATA_TERMO 10
 
 /*Prototipos para las tasks*/
 	void task_SMS(void* pdata);
@@ -23,7 +18,6 @@
 /*Semaforo señalado por task aware isr*/
 	OS_EVENT* serCsem;
 
-//shared char msj[TAM];
 shared char msj_termo[TAM];
 shared char msj_gps[TAM];
 shared int coord_ok;
@@ -62,6 +56,7 @@ void task_SMS(void* pdata)
 	char txt_msj[TAM];
 	char num_cel[16];
 
+
 	/*Inicializo el Modem*/
    Inicio_Modem(BPS);
    /* Me mantengo en el loop hasta registrarse en la red */
@@ -77,7 +72,7 @@ void task_SMS(void* pdata)
                }
          OSTimeDlySec(20);
    }
-
+   printf("Registrado en la red\n");
 	/*Limpia el buffer rx y tx del puerto serial C*/
 	serCrdFlush();
 	serCwrFlush();
@@ -161,7 +156,7 @@ void task_SMS(void* pdata)
             Borrar_SMS(num_msg);   /*Borra el mensaje previamente procesado*/
             serCrdFlush();
        }
-       if((num = strstr(num_msg, "30")) != '\0')
+       if((num = strstr(num_msg, "25")) != '\0')
        {
        	Borrar_ALL();
          num_msg[0]='\0';
@@ -187,7 +182,8 @@ void task_GPS(void* pdata)
    	 n_gps = serDread(data, sizeof(data), TIMEOUT);
    	 data[n_gps]='\0';
    	 coord_ok = ProcesarGPS(data, n_gps);
-   	 sprintf(msj_gps, "Latitud: %s\nLongitud: %s\nHora: %s\nFecha: %s\n\032", latitud, longitud, hora_utc, fecha);
+       getTimeStamp(timeStamp);
+   	 sprintf(msj_gps, "Latitud: %s\nLongitud: %s\n%s\n\032", latitud, longitud, timeStamp);
    	 n_gps = 0;
 
    }/*Fin del loop*/
@@ -199,6 +195,7 @@ void task_SENSOR(void* pdata)
 {
 	static sensor termo[BUFF_TAM];
    static sensor *ptr_termo, *ptr_termo_fin;
+
    /*Inicializacion de punteros*/
    ptr_termo = termo;
    ptr_termo_fin = &termo[BUFF_TAM-1];
@@ -208,7 +205,8 @@ void task_SENSOR(void* pdata)
 	{
    	 OSTimeDly(TIME_DATA_TERMO * OS_TICKS_PER_SEC);
       	ptr_termo->muestra = Termistor();
-         sprintf(msj_termo, "Temperatura: %.2f ºC\n\032", ptr_termo->muestra);
+         getTimeStamp(timeStamp);
+         sprintf(msj_termo, "Temperatura: %.2f C\n%s\032", ptr_termo->muestra, timeStamp);
 
          if (ptr_termo > ptr_termo_fin){
          	ptr_termo = termo;

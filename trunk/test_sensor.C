@@ -1,10 +1,10 @@
+#use variables.lib
 #use sensores.lib
 #use "RCM43xx.LIB"
-#use MODEM_SIMCOM.LIB
-
-#define BUFF_TAM 100
+#use Modem_SIMCOM.lib
 
 sensor termo[BUFF_TAM];
+
 
 void main()
 {
@@ -18,10 +18,11 @@ void main()
 		{
       	esperar(1000);
       	ptr_termo->muestra = Termistor();
-         printf("Temperature at %.2f C\n", ptr_termo->muestra);
+         getTimeStamp(timeStamp);
+         printf("Temperatura %.2f C\nTimeStamp:\n%s\n", ptr_termo->muestra, timeStamp);
 
-         if (ptr_termo > ptr_termo_fin){
+         if (ptr_termo > ptr_termo_fin)
          	ptr_termo = termo;
-         } else ptr_termo+=1;
+         ptr_termo+=1;
       }
 }

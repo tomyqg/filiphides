@@ -1,8 +1,8 @@
+#use variables.lib
 #use GPS_ET332.lib
+#use MODEM_SIMCOM.lib
 
 #define tout 50
-#define TAM 200
-
 
 void main(){
 
@@ -11,7 +11,6 @@ void main(){
    auto int n;
 
    InicializarGPS();
-
    n=0;
 
    for(;;)
@@ -23,10 +22,10 @@ void main(){
          /*printf("\n%s\n\n", data);*/
          ProcesarGPS(data, n);
          n=0;
-         sprintf(msj, "Latitud: %s\nLongitud: %s\nHora: %s\nFecha: %s\n\n", latitud, longitud, hora_utc, fecha);
+         getTimeStamp(timeStamp);
+         sprintf(msj, "Latitud: %s\nLongitud: %s\nTimeStamp:\n%s\n\n", latitud, longitud, timeStamp);
       	printf("%s", msj);
       }
 
    }
 }
-

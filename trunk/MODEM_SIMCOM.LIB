@@ -2,8 +2,7 @@
 
 #define CINBUFSIZE     255
 #define COUTBUFSIZE 	  255
-#define TIMEOUT       	30
-#define TAM         	  200
+
 #define MAX_SMS  			31/*Nº max +1 de sms almacenables en memoria del modem*/
 
 #define ERR_TIEMPO   	11
@@ -402,7 +401,7 @@ int Enviar_SMS(char *numero, char *sms){
    	return ERR_PROMPT;                  //ocurrio un error */
 
    Enviar_CMD(sms);           				//texto de respuesta
-   return 1;
+   return RESP_OK;
 }
 /*************************************************************************/
 
