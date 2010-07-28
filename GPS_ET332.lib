@@ -9,8 +9,8 @@
 
 static char latitud[LARGO];
 static char longitud[LARGO];
-static char hora_utc[LARGO];
-static char fecha[LARGO];
+/*static char hora_utc[LARGO];*/
+/*static char fecha[LARGO];*/
 static int n_gps;
 
 /*** EndHeader */
@@ -130,13 +130,13 @@ int ProcesarGPS(char *dato_gps, int len_dato_gps){
             {
       			latitud[i] = *(valido + 2 + i);
             	longitud[i] = *(valido + 14 + i);
-            	hora_utc[i] = *(valido - 11 + i);
-               fecha[i] = *(dato_gps + (len_dato_gps - 10) + i);
+            	/*hora_utc[i] = *(valido - 11 + i);*/ /*Se cambia la hora UTC por el RTC*/
+               /*fecha[i] = *(dato_gps + (len_dato_gps - 10) + i);*/
             }
             latitud[11]='\0';
          	longitud[12]='\0';
-         	hora_utc[10]='\0';
-            fecha[6]='\0';
+         	/*hora_utc[10]='\0';*/
+            /*fecha[6]='\0';*/
             return DATO_GPS_OK;
       }
       return ERR_DATO_GPS;
