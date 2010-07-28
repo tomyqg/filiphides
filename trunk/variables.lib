@@ -1,0 +1,49 @@
+/*** BeginHeader variables */
+
+#define BPS 115200
+#define ON       1
+#define OFF      0
+
+#define TIMEOUT       	30
+#define TIME_DATA_GPS   3
+#define TIME_DATA_TERMO 10
+
+#define BUFF_TAM 100
+#define TAM 200
+
+shared char timeStamp[BUFF_TAM];
+
+/*** EndHeader */
+
+
+
+/*** BeginHeader getTimeStamp */
+void getTimeStamp(char *tStamp);
+/*** EndHeader */
+
+/* START FUNCTION DESCRIPTION ********************************************
+getTimeStamp		                  <variables.lib>
+
+SYNTAX: 			void getTimeStamp(char *tStamp);
+
+DESCRIPTION:   Realiza la lectura del RTC, lo convierte en un formato
+					humano, y luego lo guarda en un arreglo de caracteres
+               a traves de un puntero.
+
+PARAMETER1:		Puntero al origen de los dato.
+
+END DESCRIPTION **********************************************************/
+
+void getTimeStamp(char *tStamp){
+
+	struct tm		rtc;					/*Estructura para el tiempo*/
+	unsigned long	t0;					/*Valor en segundos desde el 01/01/1980*/
+   unsigned int rtc_year;
+
+   t0 = read_rtc();
+	mktm(&rtc, t0);
+   rtc_year=rtc.tm_year + 1900;
+   sprintf(tStamp, "%02d/%02d/%04d\n%02d:%02d:%02d",
+			  rtc.tm_mday, rtc.tm_mon, rtc_year,
+           rtc.tm_hour, rtc.tm_min, rtc.tm_sec);
+}
